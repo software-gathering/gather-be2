@@ -1,7 +1,4 @@
 from selenium import webdriver  # webdriver를 이용해 해당 브라우저를 열기 위해
-from selenium.webdriver import (
-    ActionChains,
-)  # 일련의 작업들을(ex.아이디 입력, 비밀번호 입력, 로그인 버튼 클릭...) 연속적으로 실행할 수 있게 하기 위해
 from selenium.webdriver.common.by import By  # html요소 탐색을 할 수 있게 하기 위해
 from selenium.webdriver.support.ui import (
     WebDriverWait,
@@ -32,6 +29,9 @@ def dev_crawling(driver):
         EC.presence_of_all_elements_located((By.CLASS_NAME, "Item_item__HzT1B"))
     )
     data_list1 = []
+    # 날짜 형식 YYYY.MM.DD를 찾는 정규 표현식 패턴
+    date_pattern = r"\d{4}\.\d{2}\.\d{2}"
+
     for item in all_data:
         href = item.find_element(By.TAG_NAME, "a").get_attribute("href")
         name = item.find_element(By.CLASS_NAME, "Item_item__content__title__94_8Q").text
@@ -40,13 +40,17 @@ def dev_crawling(driver):
         time.sleep(1)
         img = item.find_element(By.TAG_NAME, "img").get_attribute("src")
 
+        dates = re.findall(date_pattern, date)
+        ex_start = dates[0] if dates else None
+        ex_end = dates[1] if len(dates) > 1 else None
+
         activity_data = {
             "ex_name": name,
             "ex_link": href,
             "ex_host": opener,
             "ex_image": img,
-            "ex_start": date[:10],
-            "ex_end": date[17:-4],
+            "ex_start": ex_start,
+            "ex_end": ex_end,
             "ex_flag": 1,
         }
         data_list1.append(activity_data)
