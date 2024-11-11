@@ -11,18 +11,6 @@ import time
 import re
 
 
-def openurl():
-    # 페이지
-    driver_dev = webdriver.Chrome()
-
-    driver_link = webdriver.Chrome()
-    driver_dev.get("https://dev-event.vercel.app/events")
-    driver_link.get(
-        "https://linkareer.com/list/contest?filterBy_categoryIDs=35&filterType=CATEGORY&orderBy_direction=DESC&orderBy_field=CREATED_AT&page=1"
-    )
-    return driver_dev, driver_link
-
-
 def dev_crawling(driver):
     wait = WebDriverWait(driver, 10)
     all_data = wait.until(
@@ -59,36 +47,49 @@ def dev_crawling(driver):
 
 def link_crawling(driver):
     wait = WebDriverWait(driver, 10)
-    test = wait.until(
+    time.sleep(1)  # robots.txt 정책에 따른 딜레이
+    all_data = wait.until(
         EC.presence_of_all_elements_located(
-            (By.CLASS_NAME, "activity-list-card-item-wrapper")
+            (By.CSS_SELECTOR, ".ActivityInfo-desktop__StyledWrapper-sc-659c82f-0")
         )
     )
     # 전체 데이터를 저장할 리스트
-    data_list2 = []
-    for item in test:
-        href = item.find_element(By.TAG_NAME, "a").get_attribute("href")
-        name = item.find_element(By.CLASS_NAME, "activity-title").text
-        opener = item.find_element(By.CLASS_NAME, "organization-name").text
-        date = item.find_element(By.CSS_SELECTOR, 'div[class^="SecondInfoText__"]').text
-        time.sleep(3)  # robots.txt 정책에 따른 딜레이
-        img = item.find_element(By.TAG_NAME, "img").get_attribute("src")
 
-        days_remaining_match = re.search(r"D-\d+", date)
-        days_remaining = (
-            int(days_remaining_match.group(0)[2:]) if days_remaining_match else 0
-        )
-        current_date = datetime.now()
-        deadline_date = current_date + timedelta(days=days_remaining)
-        deadline_str = deadline_date.strftime("%Y-%m-%d")
+    data_list2 = []
+    for item in all_data:
+        # href = item.find_element(By.TAG_NAME, "a").get_attribute("href")
+        name = item.find_element(By.CLASS_NAME, "title").text
+        opener = item.find_element(By.CLASS_NAME, "organization-name").text
+        # 날짜 형식 패턴 (예: YYYY.MM.DD)
+        date_pattern = r"\d{4}\.\d{2}\.\d{2}"
+
+        # 모든 <span> 요소 가져오기
+        spans = item.find_elements(By.TAG_NAME, "span")
+
+        # 날짜 초기화
+        start_date = None
+        end_date = None
+
+        # 각 <span> 요소의 텍스트 확인
+        for span in spans:
+            text = span.text
+            # 정규 표현식을 사용하여 날짜 형식과 일치하는지 확인
+            if re.match(date_pattern, text):
+                if not start_date:
+                    start_date = text  # 첫 번째로 찾은 날짜는 시작일로 설정
+                elif not end_date:
+                    end_date = text  # 두 번째로 찾은 날짜는 종료일로 설정
+                    break  # 종료일을 찾으면 반복 중단
+
+        img = item.find_element(By.TAG_NAME, "img").get_attribute("src")
 
         activity_data = {
             "ex_name": name,
-            "ex_link": href,
+            "ex_link": None,
             "ex_host": opener,
             "ex_image": img,
-            "ex_start": current_date.strftime("%Y-%m-%d"),
-            "ex_end": deadline_str,
+            "ex_start": start_date,
+            "ex_end": end_date,
             "ex_flag": 2,
         }
         data_list2.append(activity_data)
@@ -97,14 +98,15 @@ def link_crawling(driver):
 
 def main():
     driver = webdriver.Chrome()
-    today = datetime.today()
-    try:
-        driver.get("https://dev-event.vercel.app/events")
-        dev_crawling(driver)
 
-        driver.get(
-            "https://linkareer.com/list/contest?filterBy_categoryIDs=35&filterType=CATEGORY&orderBy_direction=DESC&orderBy_field=CREATED_AT&page=1"
-        )
+    try:
+        # driver.get("https://dev-event.vercel.app/events")
+        # dev_crawling(driver)
+
+        # driver.get(
+        #     "https://linkareer.com/list/contest?filterBy_categoryIDs=35&filterType=CATEGORY&orderBy_direction=DESC&orderBy_field=CREATED_AT&page=1"
+        # )
+        driver.get("https://linkareer.com/activity/208528")
         link_crawling(driver)
     finally:
         driver.quit()
