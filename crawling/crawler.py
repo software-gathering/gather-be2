@@ -40,7 +40,8 @@ def dev_crawling(driver):
             "ex_flag": 1,
         }
         data_list1.append(activity_data)
-    print(data_list1)
+    # print(data_list1)
+    return data_list1
 
 
 def link_crawling(driver):
@@ -102,10 +103,13 @@ def link_crawling(driver):
                             end_date = text  # 두 번째로 찾은 날짜는 종료일로 설정
                             break  # 종료일을 찾으면 반복 중단
 
-                # 이미지 URL 가져오기
-                img = driver.find_element(By.CLASS_NAME, "card-image").get_attribute(
-                    "src"
+                # 이미지 URL 가져오기 (src가 실제 URL로 설정될 때까지 대기)
+                img_element = driver.find_element(By.CLASS_NAME, "card-image")
+                WebDriverWait(driver, 10).until(
+                    lambda driver: img_element.get_attribute("src").startswith("http")
                 )
+                # 이미지 URL을 가져옴
+                img = img_element.get_attribute("src")
 
                 # 현재 페이지의 URL을 저장
                 current_url = driver.current_url
@@ -141,22 +145,26 @@ def link_crawling(driver):
             time.sleep(2)
 
     # 수집한 모든 데이터 출력
-    print(data_list2)
+    # print(data_list2)
+    return data_list2
 
 
 def main():
     driver = webdriver.Chrome()
+    crawling_data = []
 
     try:
-        # driver.get("https://dev-event.vercel.app/events")
-        # dev_crawling(driver)
+        driver.get("https://dev-event.vercel.app/events")
+        crawling_data.extend(dev_crawling(driver))
 
         driver.get(
             "https://linkareer.com/list/contest?filterBy_categoryIDs=35&filterType=CATEGORY&orderBy_direction=DESC&orderBy_field=CREATED_AT&page=1"
         )
-        link_crawling(driver)
+        crawling_data.extend(link_crawling(driver))
+        print(crawling_data)
     finally:
         driver.quit()
+        return crawling_data
 
 
 if __name__ == "__main__":
