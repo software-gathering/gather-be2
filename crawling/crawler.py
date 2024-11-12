@@ -27,8 +27,10 @@ def dev_crawling(driver):
         img = item.find_element(By.TAG_NAME, "img").get_attribute("src")
 
         dates = re.findall(date_pattern, date)
-        ex_start = dates[0] if dates else None
-        ex_end = dates[1] if len(dates) > 1 else None
+        ex_start = datetime.strptime(dates[0], "%Y.%m.%d").date() if dates else None
+        ex_end = (
+            datetime.strptime(dates[1], "%Y.%m.%d").date() if len(dates) > 1 else None
+        )
 
         activity_data = {
             "ex_name": name,
@@ -98,9 +100,13 @@ def link_crawling(driver):
                     # 정규 표현식을 사용하여 날짜 형식과 일치하는지 확인
                     if re.match(date_pattern, text):
                         if not start_date:
-                            start_date = text  # 첫 번째로 찾은 날짜는 시작일로 설정
+                            start_date = datetime.strptime(
+                                text, "%Y.%m.%d"
+                            ).date()  # 첫 번째로 찾은 날짜는 시작일로 설정
                         elif not end_date:
-                            end_date = text  # 두 번째로 찾은 날짜는 종료일로 설정
+                            end_date = datetime.strptime(
+                                text, "%Y.%m.%d"
+                            ).date()  # 두 번째로 찾은 날짜는 종료일로 설정
                             break  # 종료일을 찾으면 반복 중단
 
                 # 이미지 URL 가져오기 (src가 실제 URL로 설정될 때까지 대기)
