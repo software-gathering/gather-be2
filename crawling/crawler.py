@@ -71,19 +71,10 @@ def link_crawling(driver):
                 # 각 항목의 링크 클릭
                 link_element = item.find_element(By.CSS_SELECTOR, "a.image-link")
                 driver.execute_script("arguments[0].click();", link_element)
-                time.sleep(2)
-                # 클릭 후 로드된 페이지에서 데이터 수집
-                wait.until(
-                    EC.presence_of_element_located(
-                        (
-                            By.CSS_SELECTOR,
-                            ".ActivityInfo-desktop__StyledWrapper-sc-659c82f-0",
-                        )
-                    )
-                )
-                time.sleep(1)
+                time.sleep(5)
+
                 # 데이터 추출
-                name = driver.find_element(By.CLASS_NAME, "title").text
+                name = driver.find_element(By.TAG_NAME, "h1").text
                 opener = driver.find_element(By.CLASS_NAME, "organization-name").text
 
                 # 날짜 형식 패턴 (예: YYYY.MM.DD)
