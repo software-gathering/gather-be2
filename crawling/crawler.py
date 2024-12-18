@@ -14,13 +14,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 def dev_crawling(driver):
     wait = WebDriverWait(driver, 10)
-    all_data = wait.until(
-        EC.presence_of_all_elements_located((By.CLASS_NAME, "Item_item__HzT1B"))
-    )
+    all_data = wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "Item_item__HzT1B")))
+
     data_list1 = []
     # 날짜 형식 YYYY.MM.DD를 찾는 정규 표현식 패턴
     date_pattern = r"\d{4}\.\d{2}\.\d{2}"
-    time.sleep(1)
+    time.sleep(3)
 
     for item in all_data:
         href = item.find_element(By.TAG_NAME, "a").get_attribute("href")
@@ -50,7 +49,7 @@ def dev_crawling(driver):
 
 
 def link_crawling(driver):
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 30)
     data_list2 = []
     index = 0
 
@@ -58,7 +57,7 @@ def link_crawling(driver):
         try:
             # 모든 항목을 다시 불러오기
             all_items = wait.until(
-                EC.presence_of_all_elements_located(
+                EC.visibility_of_all_elements_located(
                     (By.CSS_SELECTOR, ".activity-list-card-item-wrapper")
                 )
             )
@@ -92,7 +91,7 @@ def link_crawling(driver):
 
                 # 모든 <span> 요소 가져오기
                 spans = driver.find_elements(By.TAG_NAME, "span")
-
+                # print(name, opener)
                 # 날짜 초기화
                 start_date = None
                 end_date = None
@@ -114,7 +113,7 @@ def link_crawling(driver):
 
                 # 이미지 URL 가져오기 (src가 실제 URL로 설정될 때까지 대기)
                 img_element = driver.find_element(By.CLASS_NAME, "card-image")
-                WebDriverWait(driver, 10).until(
+                WebDriverWait(driver, 15).until(
                     lambda driver: img_element.get_attribute("src").startswith("http")
                 )
                 # 이미지 URL을 가져옴
@@ -122,7 +121,7 @@ def link_crawling(driver):
 
                 # 현재 페이지의 URL을 저장
                 current_url = driver.current_url
-
+                # print(img, current_url)
                 # 수집한 데이터를 딕셔너리에 저장
                 activity_data = {
                     "ex_name": name,
@@ -134,10 +133,10 @@ def link_crawling(driver):
                     "ex_flag": 2,
                 }
                 data_list2.append(activity_data)
-
+                # print(activity_data)
                 # 데이터를 수집한 후 이전 페이지로 돌아감
                 driver.back()
-                time.sleep(2)  # 페이지 로드 대기
+                time.sleep(3)  # 페이지 로드 대기
 
                 # 다음 항목으로 이동하기 위해 인덱스 증가
                 index += 1
@@ -145,13 +144,13 @@ def link_crawling(driver):
             except Exception as e:
                 print(f"데이터 수집 중 오류 발생: {e}")
                 driver.back()  # 오류 발생 시 이전 페이지로 돌아가기
-                time.sleep(2)
+                time.sleep(3)
                 # 인덱스를 증가시켜 다음 항목으로 이동
                 index += 1
 
         except Exception as e:
             print(f"목록을 다시 로드하는 중 오류 발생: {e}")
-            time.sleep(2)
+            time.sleep(3)
 
     # 수집한 모든 데이터 출력
     # print(data_list2)
