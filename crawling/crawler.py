@@ -7,6 +7,9 @@ from selenium.webdriver.support import (
 from datetime import datetime, timedelta  # 날짜 및 시간 계산을 위해
 import time  # 대기 시간 설정을 위해
 import re  # 정규 표현식을 사용하기 위해
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 def dev_crawling(driver):
